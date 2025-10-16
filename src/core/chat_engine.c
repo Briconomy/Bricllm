@@ -124,7 +124,7 @@ ChatResponse *process_message(ChatSession *session, const char *message) {
         }
         
         response->response = strdup(selected_response);
-        response->response_type = "text";
+        response->response_type = strdup("text");
 
         log_message("WARN", "No matching pattern found for user %s", session->user_id);
     }
