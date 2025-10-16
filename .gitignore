@@ -1,0 +1,85 @@
+# Agent instructions (private development guidelines)
+AGENTS.md
+
+# Documentation files (all .md files except README.md)
+*.md
+!README.md
+
+# Compiled object files
+*.o
+*.obj
+
+# Dependency files
+*.d
+
+# Compiled executable
+bricllm
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# Static and shared libraries
+*.lib
+*.a
+*.la
+*.lo
+*.so
+*.so.*
+*.dylib
+
+# Core dumps
+core
+core.*
+*.core
+
+# Editor and IDE files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+*.sublime-*
+.DS_Store
+
+# Build directories
+build/
+bin/
+obj/
+dist/
+
+# Log files
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+
+# Test output
+test_output/
+*.test
+
+# Coverage reports
+*.gcno
+*.gcda
+*.gcov
+coverage/
+
+# Valgrind output
+valgrind-out.txt
+*.memcheck
+
+# Claude/AI assistant working directory
+.claude/
+
+# OS-specific files
+Thumbs.db
+Desktop.ini
+
+# Backup files
+*.orig
+*.rej
