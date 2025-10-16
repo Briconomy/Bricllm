@@ -30,8 +30,8 @@ bricllm
 *.so.*
 *.dylib
 
-# Core dumps
-core
+# Core dumps (match only in root or with extension)
+/core
 core.*
 *.core
 
