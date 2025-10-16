@@ -6,12 +6,12 @@ Bricllm is a fast, efficient "fake" LLM chatbot designed for the Briconomy Progr
 
 ## Features
 
-✨ **Conversational AI** - Natural language interaction with varied responses  
-🚀 **High Performance** - Sub-50ms response times, <20MB memory footprint  
-🎯 **Context-Aware** - Understands user roles (Tenant, Caretaker, Manager, Admin)  
-🌍 **Multi-Language** - Supports English and Zulu  
-🧭 **Navigation Assistant** - Helps users navigate app routes and features  
-💬 **Smart Deflection** - Handles small talk and redirects to app assistance  
+- **Conversational AI** - Natural language interaction with varied responses  
+- **High Performance** - Sub-50ms response times, <20MB memory footprint  
+- **Context-Aware** - Understands user roles (Tenant, Caretaker, Manager, Admin)  
+- **Multi-Language** - Supports English and Zulu  
+- **Navigation Assistant** - Helps users navigate app routes and features  
+- **Smart Deflection** - Handles small talk and redirects to app assistance  
 
 ## Quick Start
 
@@ -171,4 +171,4 @@ Bricllm is part of the Briconomy ecosystem - a comprehensive property management
 
 ---
 
-**Built with ❤️ in C for maximum performance**
+**Built in C for maximum performance**

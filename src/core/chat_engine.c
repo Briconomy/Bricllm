@@ -68,59 +68,63 @@ ChatResponse *process_message(ChatSession *session, const char *message) {
         response->suggested_actions = NULL;
         response->action_count = 0;
 
+        static const char *tenant_zu_responses[] = {
+            "Angiqondi lowo mbuzo. Ungazama ukuwushisa kabusha?",
+            "Ngicela ungichazele kabanzi. Ngingakusiza kanjani?",
+            "Angikwazi ukuphendula lokho. Ungathanda ukubuza ngento ethile ye-app?"
+        };
+        
+        static const char *tenant_en_responses[] = {
+            "I'm not sure about that. Could you rephrase your question or ask about something specific with the app?",
+            "I didn't quite understand that. What would you like help with in the Briconomy app?",
+            "Hmm, I'm not able to help with that. Is there something about payments, requests, or navigation I can assist you with?"
+        };
+        
+        static const char *caretaker_responses[] = {
+            "I can help you with tasks, schedule, and work history. What would you like to know?",
+            "I'm here to assist with your caretaker duties. What do you need help with?",
+            "Let me help you navigate your caretaker features. What are you looking for?"
+        };
+        
+        static const char *manager_responses[] = {
+            "I can assist with property management, leases, and reports. How can I help?",
+            "I'm here to help manage your properties. What do you need?",
+            "Let me help you with your management tasks. What would you like to do?"
+        };
+        
+        static const char *admin_responses[] = {
+            "I can help with user management, security settings, and system administration. What do you need?",
+            "I'm here to assist with admin functions. What would you like to configure?",
+            "Let me help you with system administration. What are you looking for?"
+        };
+        
+        static const char *default_responses[] = {
+            "I'm here to help you navigate the Briconomy app. What would you like assistance with?",
+            "Let me help you with the app. What are you trying to do?",
+            "I can guide you through the Briconomy features. What do you need?"
+        };
+
         int variation = rand() % 3;
+        const char *selected_response;
         
         if (strcmp(session->role, "tenant") == 0) {
             if (strcmp(session->language, "zu") == 0) {
-                const char *responses[] = {
-                    "Angiqondi lowo mbuzo. Ungazama ukuwushisa kabusha?",
-                    "Ngicela ungichazele kabanzi. Ngingakusiza kanjani?",
-                    "Angikwazi ukuphendula lokho. Ungathanda ukubuza ngento ethile ye-app?"
-                };
-                response->response = strdup(responses[variation]);
-                response->response_type = "text";
+                selected_response = tenant_zu_responses[variation];
             } else {
-                const char *responses[] = {
-                    "I'm not sure about that. Could you rephrase your question or ask about something specific with the app?",
-                    "I didn't quite understand that. What would you like help with in the Briconomy app?",
-                    "Hmm, I'm not able to help with that. Is there something about payments, requests, or navigation I can assist you with?"
-                };
-                response->response = strdup(responses[variation]);
-                response->response_type = "text";
+                selected_response = tenant_en_responses[variation];
             }
         } else if (strcmp(session->role, "caretaker") == 0) {
-            const char *responses[] = {
-                "I can help you with tasks, schedule, and work history. What would you like to know?",
-                "I'm here to assist with your caretaker duties. What do you need help with?",
-                "Let me help you navigate your caretaker features. What are you looking for?"
-            };
-            response->response = strdup(responses[variation]);
-            response->response_type = "text";
+            selected_response = caretaker_responses[variation];
         } else if (strcmp(session->role, "manager") == 0) {
-            const char *responses[] = {
-                "I can assist with property management, leases, and reports. How can I help?",
-                "I'm here to help manage your properties. What do you need?",
-                "Let me help you with your management tasks. What would you like to do?"
-            };
-            response->response = strdup(responses[variation]);
-            response->response_type = "text";
+            selected_response = manager_responses[variation];
         } else if (strcmp(session->role, "admin") == 0) {
-            const char *responses[] = {
-                "I can help with user management, security settings, and system administration. What do you need?",
-                "I'm here to assist with admin functions. What would you like to configure?",
-                "Let me help you with system administration. What are you looking for?"
-            };
-            response->response = strdup(responses[variation]);
-            response->response_type = "text";
+            selected_response = admin_responses[variation];
         } else {
-            const char *responses[] = {
-                "I'm here to help you navigate the Briconomy app. What would you like assistance with?",
-                "Let me help you with the app. What are you trying to do?",
-                "I can guide you through the Briconomy features. What do you need?"
-            };
-            response->response = strdup(responses[variation]);
-            response->response_type = "text";
+            selected_response = default_responses[variation];
         }
+        
+        response->response = strdup(selected_response);
+        response->response_type = "text";
 
         log_message("WARN", "No matching pattern found for user %s", session->user_id);
     }
@@ -239,6 +243,9 @@ void cleanup_expired_sessions(void) {
 }
 
 static void load_response_patterns(void) {
+    static char *nav_keywords[] = {"where", "find", "navigate", "how to"};
+    static char *payment_keywords[] = {"rent", "pay", "payment", "due"};
+
     pattern_count = 2;
     patterns = malloc(pattern_count * sizeof(ResponsePattern));
     if (!patterns) {
@@ -246,29 +253,21 @@ static void load_response_patterns(void) {
         return;
     }
 
-    patterns[0].keywords = malloc(5 * sizeof(char*));
+    patterns[0].keywords = nav_keywords;
     patterns[0].keyword_count = 4;
-    patterns[0].response = strdup("I can help you navigate. Use the bottom navigation buttons to access different sections of the app.");
-    patterns[0].category = strdup("navigation");
-    patterns[0].user_role = strdup("all");
-    patterns[0].language = strdup("en");
+    patterns[0].response = "I can help you navigate. Use the bottom navigation buttons to access different sections of the app.";
+    patterns[0].category = "navigation";
+    patterns[0].user_role = "all";
+    patterns[0].language = "en";
     patterns[0].confidence_threshold = 0.7f;
-    patterns[0].keywords[0] = strdup("where");
-    patterns[0].keywords[1] = strdup("find");
-    patterns[0].keywords[2] = strdup("navigate");
-    patterns[0].keywords[3] = strdup("how to");
 
-    patterns[1].keywords = malloc(5 * sizeof(char*));
+    patterns[1].keywords = payment_keywords;
     patterns[1].keyword_count = 4;
-    patterns[1].response = strdup("To pay your rent: 1) Go to Payments section 2) Select your property 3) Choose payment method 4) Confirm payment");
-    patterns[1].category = strdup("payment");
-    patterns[1].user_role = strdup("tenant");
-    patterns[1].language = strdup("en");
+    patterns[1].response = "To pay your rent: 1) Go to Payments section 2) Select your property 3) Choose payment method 4) Confirm payment";
+    patterns[1].category = "payment";
+    patterns[1].user_role = "tenant";
+    patterns[1].language = "en";
     patterns[1].confidence_threshold = 0.8f;
-    patterns[1].keywords[0] = strdup("rent");
-    patterns[1].keywords[1] = strdup("pay");
-    patterns[1].keywords[2] = strdup("payment");
-    patterns[1].keywords[3] = strdup("due");
 
     log_message("INFO", "Loaded %d response patterns", pattern_count);
 }
@@ -285,6 +284,10 @@ static char *generate_session_id(void) {
 }
 
 static ChatResponse *create_response_from_pattern(ResponsePattern *pattern, const char *message) {
+    static char action_type_nav[] = "navigation";
+    static char action_label_dash[] = "View Dashboard";
+    static char action_target_dash[] = "/dashboard";
+
     ChatResponse *response = malloc(sizeof(ChatResponse));
     if (!response) return NULL;
 
@@ -307,9 +310,9 @@ static ChatResponse *create_response_from_pattern(ResponsePattern *pattern, cons
         response->action_count = 1;
 
         SuggestedAction *action = malloc(sizeof(SuggestedAction));
-        action->type = strdup("navigation");
-        action->label = strdup("View Dashboard");
-        action->target = strdup("/dashboard");
+        action->type = action_type_nav;
+        action->label = action_label_dash;
+        action->target = action_target_dash;
 
         response->suggested_actions[0] = action;
     }
@@ -327,9 +330,8 @@ void free_response(ChatResponse *response) {
     if (response->suggested_actions) {
         for (int i = 0; i < response->action_count; i++) {
             if (response->suggested_actions[i]) {
-                free(response->suggested_actions[i]->type);
-                free(response->suggested_actions[i]->label);
-                free(response->suggested_actions[i]->target);
+                // #COMPLETION_DRIVE: Assuming action fields point to static strings or need freeing
+                // #SUGGEST_VERIFY: Track allocation source to determine if free is needed
                 free(response->suggested_actions[i]);
             }
         }

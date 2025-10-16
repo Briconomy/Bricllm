@@ -6,11 +6,11 @@
 #include <string.h>
 
 char *get_timestamp(void) {
+    static char timestamp[20];
     time_t now = time(NULL);
     struct tm *tm_info = localtime(&now);
-    char *timestamp = malloc(20);
 
-    strftime(timestamp, 20, "%Y-%m-%d %H:%M:%S", tm_info);
+    strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", tm_info);
     return timestamp;
 }
 
@@ -27,7 +27,6 @@ void log_message(const char *level, const char *format, ...) {
     printf("\n");
 
     va_end(args);
-    free(timestamp);
 }
 
 char *generate_uuid(void) {
