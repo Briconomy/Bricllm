@@ -14,7 +14,7 @@ DATADIR = $(SRCDIR)/data
 
 # Source files
 CORE_SOURCES = $(COREDIR)/chat_engine.c $(COREDIR)/pattern_matcher.c
-UTILS_SOURCES = $(UTILSDIR)/logger.c
+UTILS_SOURCES = $(UTILSDIR)/logger.c $(UTILSDIR)/pattern_cache.c $(UTILSDIR)/conversation_context.c
 ROUTES_SOURCES = $(ROUTESDIR)/tenant_routes.c
 DATA_SOURCES = $(DATADIR)/route_system.c
 

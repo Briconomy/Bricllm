@@ -1,6 +1,7 @@
 #include "include/bricllm.h"
 #include "include/chat_engine.h"
 #include "include/route_types.h"
+#include "include/pattern_cache.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,6 +15,7 @@ void show_help(void) {
     printf("/lang <lang>          - Set language (en, zu)\n");
     printf("/route <path>         - Set current route context\n");
     printf("/status               - Show current session status\n");
+    printf("/stats                - Show cache statistics\n");
     printf("/quit                 - Exit the application\n");
     printf("\n");
     printf("Natural language examples:\n");
@@ -103,6 +105,8 @@ bool process_command(const char *input, ChatSession **session) {
         }
     } else if (strcmp(token, "/status") == 0) {
         show_status(*session);
+    } else if (strcmp(token, "/stats") == 0) {
+        cache_stats();
     } else {
         printf("Unknown command: %s\n", token);
         printf("Type /help for available commands\n");

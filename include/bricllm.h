@@ -7,6 +7,9 @@
 #include <time.h>
 #include <stdbool.h>
 
+// Forward declaration
+typedef struct ConversationContext ConversationContext;
+
 typedef struct {
     char *id;
     char *user_id;
@@ -16,6 +19,7 @@ typedef struct {
     time_t last_activity;
     int message_count;
     char *context;
+    ConversationContext *conv_context;  // Conversation memory
 } ChatSession;
 
 typedef struct {
@@ -37,10 +41,16 @@ typedef struct {
     float confidence_threshold;
 } ResponsePattern;
 
+typedef enum {
+    ACTION_STATIC,
+    ACTION_ALLOCATED
+} ActionAllocationType;
+
 typedef struct {
     char *type;
     char *label;
     char *target;
+    ActionAllocationType allocation_type;
 } SuggestedAction;
 
 typedef struct {

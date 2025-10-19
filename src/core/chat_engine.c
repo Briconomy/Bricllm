@@ -1,9 +1,12 @@
 #include "../../include/bricllm.h"
 #include "../../include/chat_engine.h"
+#include "../../include/pattern_cache.h"
+#include "../../include/conversation_context.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <stdbool.h>
 
 static ChatSession **sessions = NULL;
 static int session_count = 0;
@@ -25,6 +28,7 @@ void init_chat_engine(void) {
         exit(1);
     }
 
+    init_pattern_cache();
     load_response_patterns();
     log_message("INFO", "Chat engine initialized with %d patterns", pattern_count);
 }
@@ -40,24 +44,60 @@ ChatResponse *process_message(ChatSession *session, const char *message) {
     log_message("INFO", "Processing message from user %s: %.50s",
                 session->user_id, message);
 
-    ResponsePattern *pattern = find_matching_pattern(message, session->role, session->language);
+    if (session->conv_context) {
+        add_to_history(session->conv_context, message);
+    }
+
+    char *resolved_message = NULL;
+    const char *query_message = message;
+    
+    if (session->conv_context) {
+        resolved_message = resolve_pronoun(session->conv_context, message);
+        if (resolved_message) {
+            query_message = resolved_message;
+            log_message("INFO", "Resolved message: '%s' -> '%s'", message, resolved_message);
+        }
+    }
+
+    ResponsePattern *pattern = cache_lookup(query_message, session->role, session->language);
+    bool from_cache = (pattern != NULL);
+    
+    if (!pattern) {
+        pattern = find_matching_pattern(query_message, session->role, session->language);
+        
+        if (pattern) {
+            cache_store(query_message, session->role, session->language, pattern);
+        }
+    }
 
     ChatResponse *response;
     if (pattern) {
-        response = create_response_from_pattern(pattern, message);
+        response = create_response_from_pattern(pattern, query_message);
         if (!response) {
-            free(pattern->response);
-            free(pattern->category);
-            free(pattern);
+            if (!from_cache) {
+                free(pattern->response);
+                free(pattern->category);
+                free(pattern);
+            }
+            free(resolved_message);
             return NULL;
         }
 
         log_message("INFO", "Found matching pattern: %s (confidence: %.2f)",
                     pattern->category, response->confidence);
 
-        free(pattern->response);
-        free(pattern->category);
-        free(pattern);
+        if (session->conv_context) {
+            update_context(session->conv_context, 
+                          pattern->category,
+                          NULL,
+                          pattern->category);
+        }
+        
+        if (!from_cache && pattern) {
+            if (pattern->response) free(pattern->response);
+            if (pattern->category) free(pattern->category);
+            free(pattern);
+        }
     } else {
         response = malloc(sizeof(ChatResponse));
         if (!response) return NULL;
@@ -129,6 +169,7 @@ ChatResponse *process_message(ChatSession *session, const char *message) {
         log_message("WARN", "No matching pattern found for user %s", session->user_id);
     }
 
+    free(resolved_message);
     return response;
 }
 
@@ -191,6 +232,17 @@ ChatSession *create_session(const char *user_id, const char *role, const char *l
         return NULL;
     }
 
+    session->conv_context = create_conversation_context();
+    if (!session->conv_context) {
+        free(session->id);
+        free(session->user_id);
+        free(session->role);
+        free(session->language);
+        free(session->context);
+        free(session);
+        return NULL;
+    }
+
     sessions[session_count++] = session;
 
     log_message("INFO", "Created new session %s for user %s (role: %s)",
@@ -207,6 +259,7 @@ void free_session(ChatSession *session) {
     free(session->role);
     free(session->language);
     free(session->context);
+    free_conversation_context(session->conv_context);
     free(session);
 }
 
@@ -313,6 +366,7 @@ static ChatResponse *create_response_from_pattern(ResponsePattern *pattern, cons
         action->type = action_type_nav;
         action->label = action_label_dash;
         action->target = action_target_dash;
+        action->allocation_type = ACTION_STATIC;
 
         response->suggested_actions[0] = action;
     }
@@ -330,9 +384,13 @@ void free_response(ChatResponse *response) {
     if (response->suggested_actions) {
         for (int i = 0; i < response->action_count; i++) {
             if (response->suggested_actions[i]) {
-                // #COMPLETION_DRIVE: Assuming action fields point to static strings or need freeing
-                // #SUGGEST_VERIFY: Track allocation source to determine if free is needed
-                free(response->suggested_actions[i]);
+                SuggestedAction *action = response->suggested_actions[i];
+                if (action->allocation_type == ACTION_ALLOCATED) {
+                    if (action->type) free(action->type);
+                    if (action->label) free(action->label);
+                    if (action->target) free(action->target);
+                }
+                free(action);
             }
         }
         free(response->suggested_actions);
