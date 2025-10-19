@@ -343,7 +343,6 @@ int main(int argc, char **argv) {
             continue;
         }
 
-        ChatResponse *response = process_message(current_session, input);
         clock_t start_clock = clock();
         ChatResponse *response = process_message(current_session, input);
         clock_t end_clock = clock();

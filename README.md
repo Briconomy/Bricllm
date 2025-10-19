@@ -25,6 +25,16 @@ make
 ./bricllm
 ```
 
+### Single Query Mode
+```bash
+./bricllm --single-query "How do I pay my rent?" --role tenant --lang en
+```
+
+Add `--json-output` (or `-j`) to emit structured responses:
+```bash
+./bricllm --single-query "How do I pay my rent?" --role tenant --lang en --json-output
+```
+
 ### Clean Build Artifacts
 ```bash
 make clean
@@ -42,6 +52,13 @@ make clean
 /status               - Show current session status
 /quit                 - Exit the application
 ```
+
+### CLI Flags
+- `--single-query <message>` / `-q <message>`: Process one message and exit
+- `--role <tenant|caretaker|manager|admin>`: Set the session role
+- `--lang <en|zu>`: Choose the response language
+- `--route <path>`: Provide a starting route context
+- `--json-output` / `-j`: Emit responses as JSON payloads
 
 ### Natural Language Examples
 ```
